@@ -1437,7 +1437,7 @@ class Connection(object):
             os.environ['ARGV0']=sys.executable
             os.execl(sys.executable,sys.executable+'(mitogen:CONTEXT_NAME)')
         os.write(1,'MITO000\n'.encode())
-        fp = os.fdopen(0, 'rb', 0)           # открыть stdin на чтение, без буфера
+        fp = os.fdopen(0, 'rb', 0)
         import time
         remaining = PREAMBLE_COMPRESSED_LEN
         chunks = []
