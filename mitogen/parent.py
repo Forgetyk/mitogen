@@ -1437,25 +1437,25 @@ class Connection(object):
             os.environ['ARGV0']=sys.executable
             os.execl(sys.executable,sys.executable+'(mitogen:CONTEXT_NAME)')
         os.write(1,'MITO000\n'.encode())
-        fp=os.fdopen(0,'rb')
         import time
         remaining = PREAMBLE_COMPRESSED_LEN
         chunks = []
-        deadline = time.time() + 10
+        deadline = time.time() + 10.0
         while remaining:
-            chunk = fp.read(remaining)
-            if chunk:
-                chunks.append(chunk)
-                remaining -= len(chunk)
+            buf = fp.read(remaining)
+            if buf:
+                chunks.append(buf)
+                remaining -= len(buf)
                 continue
             if time.time() > deadline:
-                raise RuntimeError('early EOF while reading preamble')
+                raise RuntimeError('early EOF while reading preamble (%d bytes '
+                                   'missing)' % remaining)
             time.sleep(0.02)
         try:
-            empty_bytes = bytes()
-        except NameError:
-            empty_bytes = ''
-        C = zlib.decompress(empty_bytes.join(chunks))
+            _empty = bytes()
+        except Exception:
+            _empty = ''
+        C = zlib.decompress(_empty.join(chunks))
         fp.close()
         fp=os.fdopen(W,'wb',0)
         fp.write(C)
