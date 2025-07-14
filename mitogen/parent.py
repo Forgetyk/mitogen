@@ -1438,17 +1438,12 @@ class Connection(object):
             os.execl(sys.executable,sys.executable+'(mitogen:CONTEXT_NAME)')
         os.write(1,'MITO000\n'.encode())
         fp = os.fdopen(0, 'rb', 0)
-        import time
         remaining = PREAMBLE_COMPRESSED_LEN
         chunks = []
-        deadline = time.time() + 10.0
         while remaining:
             chunk = fp.read(remaining)
             if not chunk:
-                if time.time() >= deadline:
-                    break
-                time.sleep(0.02)
-                continue
+                break
             chunks.append(chunk)
             remaining -= len(chunk)
         try:
