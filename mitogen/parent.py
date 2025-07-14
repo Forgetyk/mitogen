@@ -1437,33 +1437,29 @@ class Connection(object):
             os.environ['ARGV0']=sys.executable
             os.execl(sys.executable,sys.executable+'(mitogen:CONTEXT_NAME)')
         os.write(1,'MITO000\n'.encode())
+        fp = os.fdopen(0, 'rb', 0)           # открыть stdin на чтение, без буфера
         import time
         remaining = PREAMBLE_COMPRESSED_LEN
         chunks = []
         deadline = time.time() + 10.0
         while remaining:
-            buf = fp.read(remaining)
-            if buf:
-                chunks.append(buf)
-                remaining -= len(buf)
+            chunk = fp.read(remaining)
+            if chunk:
+                chunks.append(chunk)
+                remaining -= len(chunk)
                 continue
             if time.time() > deadline:
-                raise RuntimeError('early EOF while reading preamble (%d bytes '
-                                   'missing)' % remaining)
+                raise RuntimeError('early EOF while reading preamble (%d bytes missing)' % remaining)
             time.sleep(0.02)
         try:
-            _empty = bytes()
-        except Exception:
-            _empty = ''
-        C = zlib.decompress(_empty.join(chunks))
+            empty_bytes = bytes()
+        except NameError:
+            empty_bytes = ''
+        C = zlib.decompress(empty_bytes.join(chunks))
         fp.close()
-        fp=os.fdopen(W,'wb',0)
-        fp.write(C)
-        fp.close()
-        fp=os.fdopen(w,'wb',0)
-        fp.write(C)
-        fp.close()
-        os.write(1,'MITO001\n'.encode())
+        fp = os.fdopen(W, 'wb', 0); fp.write(C); fp.close()
+        fp = os.fdopen(w, 'wb', 0); fp.write(C); fp.close()
+        os.write(1, 'MITO001\n'.encode())
         os.close(2)
 
     def get_python_argv(self):
